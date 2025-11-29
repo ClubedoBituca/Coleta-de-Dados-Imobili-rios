@@ -1,0 +1,24 @@
+# Dependências do Pipeline de Otimização de Rotas
+
+# Manipulação de dados
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Grafos e algoritmos
+networkx>=3.0
+
+# Visualizações estáticas
+matplotlib>=3.7.0
+
+# Dados geoespaciais
+geopandas>=0.14.0
+shapely>=2.0.0
+
+# Mapas interativos
+folium>=0.15.0
+
+# Mapas base para animações
+contextily>=1.4.0
+
+# Geração de vídeos
+moviepy>=1.0.3

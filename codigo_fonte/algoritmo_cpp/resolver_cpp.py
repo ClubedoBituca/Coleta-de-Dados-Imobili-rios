@@ -292,7 +292,7 @@ def solve_cpp_puro(G: Dict[int, Dict[int, float]], nodes: List[int], out_dir: st
                     q.append(y)
         if set(non_isolated) - visited:
             raise ValueError("Grafo não é conexo entre vértices com arestas.")
-    print(f"   → Encontrados {len(odd_nodes)} nós de grau ímpar.")
+    print(f"   -> Encontrados {len(odd_nodes)} nos de grau impar.")
 
     # Caso 1: Grafo já é Euleriano
     if not odd_nodes:
@@ -318,7 +318,7 @@ def solve_cpp_puro(G: Dict[int, Dict[int, float]], nodes: List[int], out_dir: st
     length = {}
     paths = {}
     for i, u in enumerate(odd_nodes):
-        print(f"   → Processando nó ímpar {i+1}/{len(odd_nodes)} (ID: {u})")
+        print(f"   -> Processando no impar {i+1}/{len(odd_nodes)} (ID: {u})")
         dist, p = dijkstra(G, u)
         length[u] = dist
         paths[u] = p
@@ -330,7 +330,7 @@ def solve_cpp_puro(G: Dict[int, Dict[int, float]], nodes: List[int], out_dir: st
     if len(odd_nodes) % 2 != 0:
         raise ValueError("Contagem de nós ímpares não é par. Isso não deveria acontecer.")
     matching_pairs = min_weight_perfect_matching(odd_nodes, dist_uv)
-    print("   → Emparelhamento concluído.")
+    print("   -> Emparelhamento concluido.")
 
     paths_between = {}
     for u,v in matching_pairs:
@@ -445,7 +445,7 @@ def main():
     # Passa G, nodes e OUT_DIR para a função principal
     solve_cpp_puro(G, nodes, OUT_DIR)
     
-    print("\n✅ Processo concluído com sucesso.")
+    print("\n[OK] Processo concluido com sucesso.")
 
 if __name__ == "__main__":
     main()

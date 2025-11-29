@@ -1,96 +1,109 @@
-# ----------------------------------------------------------------------
-# VISUALIZAÇÃO: GERAR MAPA INTERATIVO (FOLIUM)
-#
-# Este script lê a solução final do CPP (a ordem dos vértices)
-# e os dados geográficos (coordenadas dos vértices) para plotar
-# a rota final sobre um mapa interativo usando a biblioteca Folium.
-#
-# O resultado é um arquivo HTML que pode ser aberto no navegador.
-#
-# Entrada: dados_processados/vertices_reordenados.csv (Coordenadas)
-# Entrada: resultados_finais/relatorio_tour/tour.csv (A Rota)
-# Saída:   resultados_finais/mapa_cpp.html
-# ----------------------------------------------------------------------
-
+# ---------------------------------------------------------
+# VISUALIZAÇÃO DO GRAFO COMPLETO SOBRE MAPA DE RUA (FOLIUM)
+# ---------------------------------------------------------
 
 import pandas as pd
 import folium
-import os  
+from folium.plugins import BeautifyIcon
+import os
 
-# =============================
-# 0. Definição de Caminhos
-# =============================
-PATH_VERTICES = r"dados_processados/vertices_reordenados.csv"
-PATH_TOUR = r"resultados_finais/relatorio_tour/tour.csv"
-PATH_SAIDA = r"resultados_finais/mapa_cpp.html"
+# ================================
+# 0. Caminhos dos arquivos
+# ================================
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# =======================
-# LER ARQUIVOS
-# =======================
-print("1. Lendo vértices e rota...")
+PATH_VERTICES = os.path.join(ROOT, "dados_processados", "vertices_reordenados.csv")
+PATH_ADJ      = os.path.join(ROOT, "dados_processados", "matriz_adjacencia.csv")
+PATH_SAIDA    = os.path.join(ROOT, "resultados_finais", "mapa_grafo_completo.html")
+
+# ================================
+# 1. Ler CSV de vértices
+# ================================
+print("1. Lendo coordenadas dos vértices...")
 vdf = pd.read_csv(PATH_VERTICES)
-try:
-    tdf = pd.read_csv(PATH_TOUR)
-except FileNotFoundError:
-    print(f"Erro: Arquivo {PATH_TOUR} não encontrado.")
-    print("Por favor, execute o script 'resolver_cpp.py' primeiro.")
-    exit()
 
-print("2. Processando coordenadas...")
+# Criar dicionário: id → (lat, lon)
 coord = {
     int(r["id"]): (r["lat"], r["lon"])
     for _, r in vdf.iterrows()
 }
 
-tour = tdf["vertex"].tolist()
-if not tour:
-    print("Erro: O arquivo 'tour.csv' está vazio.")
-    exit()
+# ================================
+# 2. Ler matriz de adjacência
+# ================================
+print("2. Lendo matriz de adjacência...")
+adj = pd.read_csv(PATH_ADJ, index_col=0)
 
-# =======================
-# CRIAR MAPA FOLIUM
-# =======================
-print("3. Criando mapa interativo...")
-lat0, lon0 = coord[tour[0]]
+# Garantir que tudo seja numérico
+adj.columns = adj.columns.astype(int)
+adj.index = adj.index.astype(int)
 
-m = folium.Map(location=[lat0, lon0], zoom_start=16, tiles="CartoDB dark_matter")
+# ================================
+# 3. Criar mapa Folium
+# ================================
+print("3. Criando mapa...")
 
-for v in tour:
-    if v in coord:
-        lat, lon = coord[v]
-        folium.CircleMarker(
-            location=[lat, lon],
-            radius=3,
-            popup=f"Vértice {v}",
-            color="#FF0000", # Vermelho vivo
-            fill=True,
-            fill_color="#FF0000"
-        ).add_to(m)
-    else:
-        print(f"Aviso: Vértice {v} do tour não encontrado na lista de vértices.")
+# Pega um vértice qualquer como centro
+first = vdf.iloc[0]
+lat0, lon0 = first["lat"], first["lon"]
 
+m = folium.Map(location=[lat0, lon0], zoom_start=16)
 
-polyline_coords = []
-for v in tour:
-    if v in coord:
-        polyline_coords.append(coord[v])
+# === ADICIONAR TILE ESRI (como solicitado) ===
+esri_imagery_url = (
+    "https://server.arcgisonline.com/ArcGIS/rest/services/"
+    "World_Imagery/MapServer/tile/{z}/{y}/{x}"
+)
 
-folium.PolyLine(
-    locations=polyline_coords,
-    weight=4,
-    color="#00A3FF",
-    tooltip="Caminho CPP"
+folium.TileLayer(
+    tiles=esri_imagery_url,
+    attr="Tiles © Esri",
+    name="Esri WorldImagery",
+    overlay=False,
+    control=True,
 ).add_to(m)
 
+# ================================
+# 4. Plottar todas as arestas do grafo
+# ================================
+print("4. Plotando arestas...")
 
-folium.TileLayer('openstreetmap').add_to(m)
+for i in adj.index:
+    for j in adj.columns:
+        if adj.at[i, j] != 0:  # existe aresta
+            if i in coord and j in coord:
+                folium.PolyLine(
+                    locations=[coord[i], coord[j]],
+                    color="#00A3FF",
+                    weight=2,
+                    opacity=0.8
+                ).add_to(m)
+
+# ================================
+# 5. Plottar vértices
+# ================================
+print("5. Plotando vértices...")
+
+for vid, (lat, lon) in coord.items():
+    folium.Marker(
+        location=[lat, lon],
+        popup=f"Vértice {vid}",
+        icon=BeautifyIcon(
+            number=str(vid),       # <<< número exibido no marcador
+            border_color="#FF0000",
+            text_color="white",
+            background_color="#FF0000",
+            border_width=1
+        )
+    ).add_to(m)
+
+# ================================
+# 6. Finalizar
+# ================================
 folium.LayerControl().add_to(m)
 
-# =======================
-# SALVAR MAPA
-# =======================
-print(f"4. Salvando mapa em {PATH_SAIDA}...")
 os.makedirs(os.path.dirname(PATH_SAIDA), exist_ok=True)
 m.save(PATH_SAIDA)
 
-print(f"✅ Mapa interativo salvo com sucesso!")
+print(f"\nMapa salvo em: {PATH_SAIDA}\n")
+print("Visualização completa do grafo gerada com sucesso!")

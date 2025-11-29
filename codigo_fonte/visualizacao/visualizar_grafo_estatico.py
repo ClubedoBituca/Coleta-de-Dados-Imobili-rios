@@ -41,7 +41,7 @@ gdf_vertices = gpd.GeoDataFrame(
 # reprojetar para metros
 gdf_vertices = gdf_vertices.to_crs(epsg=32723)
 
-# criar lookup rápido: id → geometry
+# criar lookup rápido: id -> geometry
 geom_dict = dict(zip(gdf_vertices["id"], gdf_vertices.geometry))
 
 # =============================
@@ -110,7 +110,7 @@ for _, row in gdf_vertices.iterrows():
         zorder=4
     )
 
-ax.set_title("🗺️ Grafo Eloi Mendes — Pesos por Distância (m)", fontsize=16, pad=20)
+ax.set_title("Grafo Eloi Mendes - Pesos por Distancia (m)", fontsize=16, pad=20)
 ax.axis("equal")
 ax.axis("off")
 plt.tight_layout()
@@ -124,4 +124,4 @@ os.makedirs(os.path.dirname(PATH_SAIDA), exist_ok=True)
 plt.savefig(PATH_SAIDA, dpi=300, bbox_inches="tight", pad_inches=0.05)
 plt.close()
 
-print(f"✅ Grafo exportado com sucesso: {PATH_SAIDA}")
+print(f"[OK] Grafo exportado com sucesso: {PATH_SAIDA}")

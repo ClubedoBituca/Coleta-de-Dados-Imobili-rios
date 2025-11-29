@@ -16,13 +16,13 @@
 
 import pandas as pd
 import numpy as np
-import os 
+import os
 
 # =============================
 # 0. Definição de Caminhos
 # =============================
 PATH_VERTICES = r"dados_processados/vertices_reordenados.csv"
-PATH_ARESTAS = r"dados_processados/arestas_calc.csv"
+PATH_ARESTAS = r"dados_processados/arestas_com_peso_final.csv"
 PATH_SAIDA = r"dados_processados/matriz_adjacencia.csv"
 OUT_DIR = r"dados_processados"
 
@@ -51,13 +51,13 @@ for _, row in arestas.iterrows():
     try:
         o = int(row['origem'])
         d = int(row['destino'])
-        dist = row['distancia_m']
-        
+        peso = row['peso']
+
         i = map_id_ind[o]
         j = map_id_ind[d]
 
-        mat[i][j] = dist
-        mat[j][i] = dist
+        mat[i][j] = peso
+        mat[j][i] = peso
     except KeyError as e:
         print(f"Aviso: ID {e} da aresta não encontrado na lista de vértices. Pulando aresta.")
     except Exception as e:
@@ -72,4 +72,4 @@ os.makedirs(OUT_DIR, exist_ok=True)
 df_mat = pd.DataFrame(mat, index=ids, columns=ids)
 df_mat.to_csv(PATH_SAIDA)
 
-print(f"✅ Matriz de adjacência gerada com sucesso: {PATH_SAIDA}")
+print(f"[OK] Matriz de adjacencia gerada com sucesso: {PATH_SAIDA}")
